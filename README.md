@@ -1,48 +1,57 @@
 # 🚗 Automatic License Plate Recognition (ALPR)
 
-> An end-to-end license plate detection and recognition pipeline using **YOLOv11** for plate localization and **PaddleOCR** for text extraction — trained with 2-stage fine-tuning on a Google T4 GPU.
+> End-to-end license plate detection and OCR using **YOLOv11s** + **PaddleOCR**, trained with 2-stage fine-tuning on a Google T4 GPU.
 
-[![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white)](https://python.org)
-[![YOLOv11](https://img.shields.io/badge/YOLOv11-Ultralytics-purple?logo=yolo)](https://github.com/ultralytics/ultralytics)
-[![PaddleOCR](https://img.shields.io/badge/PaddleOCR-3.x-red?logo=paddlepaddle)](https://github.com/PaddlePaddle/PaddleOCR)
-[![Colab](https://img.shields.io/badge/Run%20on-Google%20Colab-orange?logo=google-colab)](https://colab.research.google.com)
+[![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=white)](https://python.org)
+[![YOLOv11](https://img.shields.io/badge/YOLOv11s-Ultralytics-purple)](https://github.com/ultralytics/ultralytics)
+[![PaddleOCR](https://img.shields.io/badge/PaddleOCR-3.x-red)](https://github.com/PaddlePaddle/PaddleOCR)
+[![Colab](https://img.shields.io/badge/Google%20Colab-T4%20GPU-orange?logo=google-colab)](https://colab.research.google.com)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE)
 
 ---
 
-## 📌 Overview
+## 📊 Model Performance
 
-This project implements a full **ALPR pipeline** combining state-of-the-art object detection and OCR:
+Evaluated on **2,048 validation images** using the trained `best.pt` checkpoint:
 
-1. **YOLOv11** detects and localizes the license plate bounding box
-2. The cropped plate is preprocessed (grayscale + 2.5× bicubic upscaling)
-3. **PaddleOCR** reads the text with angle correction enabled
-
-Trained using a **2-stage fine-tuning strategy** on Google Colab's T4 GPU — first freezing backbone layers to stabilize early training, then unfreezing all layers for full fine-tuning.
-
----
-
-## ✨ Key Features
-
-| Feature | Details |
+| Metric | Score |
 |---|---|
-| 🎯 Plate Detection | YOLOv11 trained on custom dataset (YOLOv11 format, `data.yaml`) |
-| ✂️ Smart Cropping | Bounding box crop from YOLO `xyxy` output |
-| 🔍 Preprocessing | Grayscale conversion + 2.5× bicubic upscaling before OCR |
-| 🔤 OCR Engine | PaddleOCR with English language + angle classification |
-| 🏋️ 2-Stage Training | Stage 1: 6 epochs, frozen backbone; Stage 2: 4 epochs, full fine-tune |
-| 📊 Evaluation | mAP50, mAP50-95, Precision, Recall via `model.val()` |
+| **mAP@50** | **0.9533** |
+| **mAP@50-95** | **0.6520** |
+| **Precision** | **0.9686** |
+| **Recall** | **0.9125** |
+
+**Inference speed:** 0.9ms preprocess · 6.5ms inference · 1.3ms postprocess per image on Tesla T4
+
+> Model: YOLO11s (fused) — 9.4M parameters · 21.3 GFLOPs · 100 layers
 
 ---
 
-## 🛠️ Tech Stack
+## 🧠 Architecture & Training
 
-- **Detection:** YOLOv11 (Ultralytics)
-- **OCR:** PaddleOCR (PaddlePaddle 3.2.2)
-- **Image Processing:** OpenCV
-- **Visualization:** Matplotlib
-- **Environment:** Google Colab (T4 GPU)
-- **Storage:** Google Drive (dataset + model weights)
+**Detection:** YOLOv11s fine-tuned on a custom license plate dataset (~2,048 validation images, single class)
+
+**2-Stage Fine-Tuning Strategy:**
+
+| Stage | Epochs | Batch | Frozen Layers | Purpose |
+|---|---|---|---|---|
+| Stage 1 | 6 | 4 | 10 (backbone frozen) | Warm up detection head |
+| Stage 2 | 4 | 2 | 0 (full model) | End-to-end fine-tuning |
+
+- Image size: `640×640`, AMP enabled, device: CUDA (T4)
+- Stage 2 loads from Stage 1's `last.pt`
+
+**OCR:** PaddleOCR (English, angle classification enabled)  
+**Preprocessing before OCR:** Grayscale → 2.5× bicubic upscale → back to BGR
+
+---
+
+## 🔄 Inference Pipeline
+
+```
+Input Image → YOLOv11s Detection → Crop Plate (xyxy)
+→ Grayscale + 2.5× Upscale → PaddleOCR → Plate Text
+```
 
 ---
 
@@ -50,119 +59,34 @@ Trained using a **2-stage fine-tuning strategy** on Google Colab's T4 GPU — fi
 
 ```
 License-Plate-Recognition/
-│
-├── ALPR.ipynb          # Full training + inference pipeline
+├── ALPR.ipynb       # Full pipeline: training, inference, evaluation
 ├── models/
-│   └── best.pt         # Trained YOLOv11 weights
+│   └── best.pt      # Trained YOLOv11s weights
 └── README.md
-```
-
----
-
-## ▶️ Getting Started
-
-### Option 1 — Google Colab *(Recommended)*
-
-1. Open `ALPR.ipynb` in Colab → set runtime to **GPU (T4)**
-2. Mount Google Drive and place your dataset at:
-   ```
-   /content/drive/MyDrive/Dataset/
-   ```
-   Ensure the dataset includes a `data.yaml` file in YOLOv11 format.
-3. Run all cells sequentially — training, inference, and evaluation are all included.
-
-### Option 2 — Run Locally
-
-```bash
-pip install ultralytics paddlepaddle==3.2.2 paddleocr opencv-python matplotlib
-apt-get install -y libgl1-mesa-glx   # Linux only
-```
-
-Then run the notebook in Jupyter or VS Code with a CUDA-enabled GPU.
-
----
-
-## 🔄 Pipeline
-
-```
-Input Image
-    │
-    ▼
-YOLOv11 Detection  →  Bounding Box (xyxy)
-    │
-    ▼
-Crop License Plate Region
-    │
-    ▼
-Grayscale + 2.5× Bicubic Upscaling
-    │
-    ▼
-PaddleOCR (angle correction enabled)
-    │
-    ▼
-Extracted Plate Text
-```
-
----
-
-## 🏋️ Training Strategy
-
-The model uses a **2-stage fine-tuning approach** to maximize accuracy with limited compute:
-
-| Stage | Epochs | Batch Size | Frozen Layers | Purpose |
-|---|---|---|---|---|
-| Stage 1 | 6 | 4 | 10 (backbone) | Warm up detection head |
-| Stage 2 | 4 | 2 | 0 (full model) | End-to-end fine-tuning |
-
-- Image size: `640×640`
-- Mixed precision training (AMP enabled)
-- Stage 2 initializes from Stage 1's `last.pt`
-
----
-
-## 📊 Evaluation
-
-After training, the model is evaluated using:
-
-```python
-results = model.val()
-# Outputs: mAP50, mAP50-95, Precision, Recall
 ```
 
 ---
 
 ## 🚀 Roadmap
 
-- [ ] Real-time video stream inference (webcam / CCTV)
-- [ ] Multi-country / multilingual plate support via PaddleOCR language configs
+- [ ] Real-time video / CCTV stream inference
+- [ ] Multi-country plate support via PaddleOCR language configs
 - [ ] Vehicle type classification (car, truck, bike, bus)
-- [ ] Low-light image enhancement preprocessing
-- [ ] Streamlit or FastAPI web demo
-- [ ] Extended training with more epochs on higher-VRAM GPU
+- [ ] Low-light preprocessing enhancement
+- [ ] Streamlit / FastAPI demo
 
 ---
 
-## 📖 References
+## 📖 Reference
 
-- **Research Inspiration:** [*A Deep Learning-Based System for Automatic License Plate Recognition Using YOLOv12 and PaddleOCR*](https://www.mdpi.com/3400936) — *Applied Sciences, MDPI*
-- [Ultralytics YOLOv11 Docs](https://docs.ultralytics.com)
-- [PaddleOCR GitHub](https://github.com/PaddlePaddle/PaddleOCR)
-- [OpenCV Documentation](https://docs.opencv.org)
+Inspired by: [*A Deep Learning-Based System for ALPR Using YOLOv12 and PaddleOCR*](https://www.mdpi.com/3400936) — *Applied Sciences, MDPI*
 
 ---
 
 ## 👨‍💻 Author
 
-**Tanish Sharma**  
-B.Tech — Artificial Intelligence & Machine Learning  
-NIT Kurukshetra
+**Tanish Sharma** · B.Tech AI & ML · NIT Kurukshetra
 
 ---
 
-## 📜 License
-
-This project is licensed under the [MIT License](LICENSE) — free to use, modify, and distribute with attribution.
-
----
-
-> ⭐ If this project helped you or sparked ideas, consider giving it a star!
+> ⭐ Star the repo if you found it useful!
