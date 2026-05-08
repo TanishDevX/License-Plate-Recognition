@@ -135,7 +135,7 @@ License-Plate-Recognition/
 
 <div align="center">
 
-**Tanish Sharma** · B.Tech AI & ML · NIT Kurukshetra
+**TanishDevX** 
 
 <br/>
 
