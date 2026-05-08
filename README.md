@@ -14,13 +14,13 @@
 [![Python](https://img.shields.io/badge/Python_3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![YOLOv11](https://img.shields.io/badge/YOLOv11s-Ultralytics-111827?style=flat-square)](https://github.com/ultralytics/ultralytics)
 [![PaddleOCR](https://img.shields.io/badge/PaddleOCR-3.x-0062B1?style=flat-square)](https://github.com/PaddlePaddle/PaddleOCR)
-[![CUDA](https://img.shields.io/badge/CUDA-Tesla_T4-76b900?style=flat-square&logo=nvidia&logoColor=white)](.)
+[![Colab](https://img.shields.io/badge/Google_Colab-T4_GPU-F9AB00?style=flat-square&logo=google-colab&logoColor=white)](https://colab.research.google.com)
 [![License](https://img.shields.io/badge/License-MIT-gray?style=flat-square)](LICENSE)
 
 <br/>
 
 *A production-grade ALPR system combining **YOLOv11s** plate detection with **PaddleOCR** text extraction,  
-trained via 2-stage fine-tuning on a Tesla T4 GPU — achieving **95.33% mAP@50** on 2,048 validation images.*
+trained via 2-stage fine-tuning on a T4 GPU — achieving **95.33% mAP@50** on 2,048 validation images.*
 
 </div>
 
@@ -36,12 +36,12 @@ trained via 2-stage fine-tuning on a Tesla T4 GPU — achieving **95.33% mAP@50*
 | **mAP@50-95** | **65.20%** | Strict IoU-averaged detection quality |
 | **Precision** | **96.86%** | Low false positive rate |
 | **Recall** | **91.25%** | Strong plate detection coverage |
-| **Inference** | **6.5ms / image** | On Tesla T4 GPU |
+| **Inference** | **6.5ms / image** | On T4 GPU |
 | **Val Set** | **2,048 images** | 2,195 instances, single class |
 
 </div>
 
-> **Model:** YOLO11s (fused) · 9.41M parameters · 21.3 GFLOPs · 100 layers · PyTorch 2.9 + CUDA 12.6
+> **Model:** YOLO11s (fused) · 9.41M parameters · 21.3 GFLOPs · 100 layers · PyTorch 2.9 · Google Colab T4 GPU
 
 ---
 
@@ -99,9 +99,8 @@ Pretrained YOLOv11s
 | Detection Model | YOLOv11s (Ultralytics 8.3.230) |
 | OCR Engine | PaddleOCR + PaddlePaddle 3.2.2 |
 | Image Processing | OpenCV |
-| Training Hardware | Tesla T4 · 15GB VRAM |
-| Framework | PyTorch 2.9 + CUDA 12.6 |
-| Environment | Google Colab |
+| Training Hardware | Google Colab T4 GPU |
+| Framework | PyTorch 2.9 |
 
 ---
 
@@ -136,7 +135,7 @@ License-Plate-Recognition/
 
 <div align="center">
 
-**TanishDevX** 
+**Tanish Sharma** · B.Tech AI & ML · NIT Kurukshetra
 
 <br/>
 
